@@ -1,20 +1,17 @@
-from django.http import QueryDict
+from django.http import QueryDict, HttpResponse
 from django.shortcuts import render
 from django import forms
 
 from . import util
 
-'''
-def search_Check(list_Entries,result):
-    match_List =[]
+
+def search_Check(query):
+    match_List = []
+    list_Entries = util.list_entries()
     for my_Entry in list_Entries:
-        if my_Entry.startswith(result):
-            match_List.append(my_Entry)
+        if my_Entry.startswith(query):
+            match_List.append(my_Entry.casefold())
     return match_List
-'''
-
-
-
 
 
 def index(request):
@@ -32,6 +29,8 @@ def visit_Entry(request, my_Entry):
 
 
 def search(request):
+    q = str(request.POST.get("q")).lower()
     return render(request, "encyclopedia/search.html", {
-        "result": request.POST
-    })
+            "result": util.check_Entry(q)
+        })
+

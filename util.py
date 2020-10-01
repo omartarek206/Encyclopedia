@@ -42,6 +42,9 @@ def check_Entry(title):
     Checks if title is a part of an entry's name.
     Returns the entry(entries) title, else returns None.
     """
-    _, filenames = default_storage.listdir("entries")
-    return list(sorted(re.sub(r"\.md$", "", filename)
-                       for filename in filenames if (filename.endswith(".md") and (filename.startswith(title)))))
+    out = []
+    my_List = list_entries()
+    for al in my_List:
+        if al.lower().startswith(title):
+            out.append(al)
+    return out

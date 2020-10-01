@@ -5,7 +5,11 @@
 {% endblock %}
 
 {% block body %}
-
-<h1><a href="{{result.q}}"> Your Result</a></h1>
+<h1>Search Results</h1>
+        <ul>
+            {% for count in result %}
+                <li><a href="{{count}}">{{count}}</a></li>
+            {% endfor %}
+        </ul>
 
 {% endblock %}
