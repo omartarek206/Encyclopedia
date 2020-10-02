@@ -5,6 +5,11 @@ from django import forms
 from . import util
 
 
+class MyForm(forms.Form):
+    title = forms.CharField(label="Title")
+    content = forms.CharField(label="Content")
+
+
 def search_Check(query):
     match_List = []
     list_Entries = util.list_entries()
@@ -16,7 +21,7 @@ def search_Check(query):
 
 def index(request):
     return render(request, "encyclopedia/index.html", {
-        "entries": util.list_entries(),
+        "entries": util.list_entries()
     })
 
 
@@ -29,8 +34,29 @@ def visit_Entry(request, my_Entry):
 
 
 def search(request):
-    q = str(request.POST.get("q")).lower()
-    return render(request, "encyclopedia/search.html", {
+    if request.method == 'POST':
+        q = str(request.POST.get("q")).lower()
+        return render(request, "encyclopedia/search.html", {
             "result": util.check_Entry(q)
-        })
+         })
+    else:
+        return render(request, "encyclopedia/index.html")
+
+
+def new(request):
+    if request.method == 'POST':
+        myform = MyForm(request.POST)
+        if myform.is_valid():
+            title = myform.cleaned_data["title"]
+            if util.get_entry(title) is not None:
+                return render(request, "encyclopedia/badnew.html")
+            content = myform.cleaned_data["content"]
+            util.save_entry(title, content)
+        else:
+            return render(request, "encyclopedia/new.html", {
+                "myform": myform
+            })
+    return render(request, "encyclopedia/new.html", {
+        "myform": MyForm
+    })
 
