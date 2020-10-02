@@ -1,4 +1,4 @@
-from django.http import QueryDict, HttpResponse
+from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django import forms
 
@@ -36,6 +36,8 @@ def visit_Entry(request, my_Entry):
 def search(request):
     if request.method == 'POST':
         q = str(request.POST.get("q")).lower()
+        if util.get_entry(q) is not None:
+            return HttpResponseRedirect(f"{q}")
         return render(request, "encyclopedia/search.html", {
             "result": util.check_Entry(q)
          })
@@ -52,6 +54,7 @@ def new(request):
                 return render(request, "encyclopedia/badnew.html")
             content = myform.cleaned_data["content"]
             util.save_entry(title, content)
+            return HttpResponseRedirect(f"{title}")
         else:
             return render(request, "encyclopedia/new.html", {
                 "myform": myform
@@ -59,4 +62,3 @@ def new(request):
     return render(request, "encyclopedia/new.html", {
         "myform": MyForm
     })
-
