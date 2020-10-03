@@ -9,14 +9,8 @@ class MyForm(forms.Form):
     title = forms.CharField(label="Title")
     content = forms.CharField(label="Content")
 
-
-def search_Check(query):
-    match_List = []
-    list_Entries = util.list_entries()
-    for my_Entry in list_Entries:
-        if my_Entry.startswith(query):
-            match_List.append(my_Entry.casefold())
-    return match_List
+class form(MyForm):
+    title = None
 
 
 def index(request):
@@ -27,10 +21,30 @@ def index(request):
 
 def visit_Entry(request, my_Entry):
     if util.get_entry(my_Entry) is None:
-        my_Entry = None
+        return render(request, "encyclopedia/badentry.html")
     return render(request, "encyclopedia/my_Entry.html", {
-        "my_Entry": util.get_entry(my_Entry)
+        "title": my_Entry,
+        "content": util.get_entry(my_Entry)
     })
+
+
+def edit(request, title):
+    if request.method == 'POST':
+        myform = form(request.POST)
+        if myform.is_valid():
+            content = myform.cleaned_data["content"]
+            util.save_entry(title, content)
+            return visit_Entry(request, title)
+        else:
+            return render(request, "encyclopedia/new.html", {
+                "myform": myform
+            })
+    else:
+        content = util.get_entry(title)
+        return render(request, "encyclopedia/edit.html", {
+            "title": title,
+            "content": content
+        })
 
 
 def search(request):
@@ -62,3 +76,8 @@ def new(request):
     return render(request, "encyclopedia/new.html", {
         "myform": MyForm
     })
+
+
+def random(request):
+    title = util.random_Entry()
+    return visit_Entry(request, title)

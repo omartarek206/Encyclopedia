@@ -1,4 +1,5 @@
 import re
+import random
 
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
@@ -48,3 +49,11 @@ def check_Entry(title):
         if al.lower().startswith(title):
             out.append(al)
     return out
+
+
+def random_Entry():
+    """
+    Returns a random entry title.
+    """
+    my_list = list_entries()
+    return random.choice(my_list)
