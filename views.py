@@ -1,8 +1,8 @@
-from django.http import QueryDict, HttpResponse
+from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django import forms
 
-from . import util
+from . import util, markdown2
 
 
 class MyForm(forms.Form):
@@ -10,13 +10,8 @@ class MyForm(forms.Form):
     content = forms.CharField(label="Content")
 
 
-def search_Check(query):
-    match_List = []
-    list_Entries = util.list_entries()
-    for my_Entry in list_Entries:
-        if my_Entry.startswith(query):
-            match_List.append(my_Entry.casefold())
-    return match_List
+class form(MyForm):
+    title = None
 
 
 def index(request):
@@ -27,18 +22,40 @@ def index(request):
 
 def visit_Entry(request, my_Entry):
     if util.get_entry(my_Entry) is None:
-        my_Entry = None
+        return render(request, "encyclopedia/badentry.html")
     return render(request, "encyclopedia/my_Entry.html", {
-        "my_Entry": util.get_entry(my_Entry)
+        "title": my_Entry,
+        "content": markdown2.markdown(util.get_entry(my_Entry))
     })
+
+
+def edit(request, title):
+    if request.method == 'POST':
+        myform = form(request.POST)
+        if myform.is_valid():
+            content = myform.cleaned_data["content"]
+            util.save_entry(title, content)
+            return visit_Entry(request, title)
+        else:
+            return render(request, "encyclopedia/new.html", {
+                "myform": myform
+            })
+    else:
+        content = util.get_entry(title)
+        return render(request, "encyclopedia/edit.html", {
+            "title": title,
+            "content": content
+        })
 
 
 def search(request):
     if request.method == 'POST':
         q = str(request.POST.get("q")).lower()
+        if util.get_entry(q) is not None:
+            return HttpResponseRedirect(f"{q}")
         return render(request, "encyclopedia/search.html", {
             "result": util.check_Entry(q)
-         })
+        })
     else:
         return render(request, "encyclopedia/index.html")
 
@@ -52,6 +69,7 @@ def new(request):
                 return render(request, "encyclopedia/badnew.html")
             content = myform.cleaned_data["content"]
             util.save_entry(title, content)
+            return HttpResponseRedirect(f"{title}")
         else:
             return render(request, "encyclopedia/new.html", {
                 "myform": myform
@@ -60,3 +78,7 @@ def new(request):
         "myform": MyForm
     })
 
+
+def random(request):
+    title = util.random_Entry()
+    return visit_Entry(request, title)
