@@ -2,12 +2,13 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django import forms
 
-from . import util
+from . import util, markdown2
 
 
 class MyForm(forms.Form):
     title = forms.CharField(label="Title")
     content = forms.CharField(label="Content")
+
 
 class form(MyForm):
     title = None
@@ -24,7 +25,7 @@ def visit_Entry(request, my_Entry):
         return render(request, "encyclopedia/badentry.html")
     return render(request, "encyclopedia/my_Entry.html", {
         "title": my_Entry,
-        "content": util.get_entry(my_Entry)
+        "content": markdown2.markdown(util.get_entry(my_Entry))
     })
 
 
@@ -54,7 +55,7 @@ def search(request):
             return HttpResponseRedirect(f"{q}")
         return render(request, "encyclopedia/search.html", {
             "result": util.check_Entry(q)
-         })
+        })
     else:
         return render(request, "encyclopedia/index.html")
 
